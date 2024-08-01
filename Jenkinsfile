@@ -8,6 +8,7 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
+        DEP_CHECK_HOME = tool 'dependency-check' 
     }
 
     stages {
@@ -35,6 +36,14 @@ pipeline {
             }
         }
 
+        stage('OWASP Dependency-Check') {
+            steps {
+                script {
+                    sh """${DEP_CHECK_HOME}/bin/dependency-check.sh --project Boardgame --out dependency-check-report --scan ."""
+                }
+            }
+        }
+
         stage('Code Quality Check') {
             steps {
                 script {
@@ -54,7 +63,7 @@ pipeline {
             }
         }
 
-        stage('Build') { // Corrected the typo here from 'Buid' to 'Build'
+        stage('Build') {
             steps {
                 sh 'mvn clean install'
             }
@@ -131,9 +140,10 @@ pipeline {
                     from: 'jenkins@example.com',
                     replyTo: 'jenkins@example.com',
                     mimeType: 'text/html',
-                    attachmentsPattern: 'trivy-image-report.html'
+                    attachmentsPattern: 'trivy-image-report.html,dependency-check-report.html'
                 )
             }
         }
     }
 }
+
